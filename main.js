@@ -85,36 +85,6 @@ addLight();
 
 // -----------------------------------------------------------------//
 
-// Loading a .FBX file to the game
-// function loadfbx(fbx_dir) {
-//     const fbxLoader = new FBXLoader();
-//     fbxLoader.load(fbx_dir, (fbx) => {
-//         scene.add(fbx);
-//         console.log("FBX Loaded.");
-//         // Access the FBX's position here because it's available in this scope.
-//         console.log(fbx.position);
-//         const box = new THREE.Box3().setFromObject(fbx);
-//         console.log(box.min, box.max);
-//         const center = box.getCenter(new THREE.Vector3());
-
-//         // Center the FBX file
-//         fbx.position.sub(center);  // This will center the FBX to the origin of the scene.
-//         fbx.position.x -= center.x;
-//         fbx.position.z -= center.z;
-
-//         // Set ground to be the x and z positions
-//         const height = box.max.y - box.min.y;
-//         fbx.position.y += height / 2;
-
-//         // Scale the FBX file
-//         fbx.scale.setScalar(1.3);  // scale down by a factor of 10 for instance
-//         fbx.rotation.y = Math.PI / 2;  // Rotate 90 degrees about the Y axis, for example
-//     });
-// }
-
-// const fbx_file = './resources/park_aligned.fbx';
-// loadfbx(fbx_file);
-
 const fbx_file = './resources/park_aligned.fbx';
 const donut_fbx = './resources/donut_pink.fbx';
 
@@ -157,7 +127,6 @@ function placeObjectAtCenter(mainObject, objectToPlacePath) {
     });
 }
 
-
 loadfbx(fbx_file, (park) => {
     scene.add(park);
     console.log("Park Uploaded");
@@ -183,7 +152,6 @@ loadfbx(fbx_file, (park) => {
     console.log("Donut Uploaded");
 
 });
-
 
 // -----------------------------------------------------------------//
 
@@ -271,7 +239,6 @@ function updateCameraPosition() {
 
     // Apply the offset to the agent's position to get the camera's position
     camera.position.copy(agent.position).add(offset);
-
     console.log(`Direction: ${direction}, Offset after rotation: ${offset.x}, ${offset.y}, ${offset.z}`);
 
     camera.lookAt(agent.position);
