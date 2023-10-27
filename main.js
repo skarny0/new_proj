@@ -17,7 +17,8 @@ console.log("Made it here!");
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xe1f6ff)
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100000);
+scene.fog = new THREE.Fog(0xe1f6ff, 2000, 3500);
+const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 10000);
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -27,7 +28,7 @@ document.body.appendChild( renderer.domElement );
 // Adding an orbital camera (one that can move)
 // const controls = new OrbitControls( camera, renderer.domElement );
 
-camera.position.z = 1000;
+camera.position.z = 600;
 
 // display camera coordinates in console
 // console.log("Camera Position:", camera.position.x, camera.position.y, camera.position.z);
@@ -85,34 +86,104 @@ addLight();
 // -----------------------------------------------------------------//
 
 // Loading a .FBX file to the game
-function loadfbx(fbx_dir) {
+// function loadfbx(fbx_dir) {
+//     const fbxLoader = new FBXLoader();
+//     fbxLoader.load(fbx_dir, (fbx) => {
+//         scene.add(fbx);
+//         console.log("FBX Loaded.");
+//         // Access the FBX's position here because it's available in this scope.
+//         console.log(fbx.position);
+//         const box = new THREE.Box3().setFromObject(fbx);
+//         console.log(box.min, box.max);
+//         const center = box.getCenter(new THREE.Vector3());
+
+//         // Center the FBX file
+//         fbx.position.sub(center);  // This will center the FBX to the origin of the scene.
+//         fbx.position.x -= center.x;
+//         fbx.position.z -= center.z;
+
+//         // Set ground to be the x and z positions
+//         const height = box.max.y - box.min.y;
+//         fbx.position.y += height / 2;
+
+//         // Scale the FBX file
+//         fbx.scale.setScalar(1.3);  // scale down by a factor of 10 for instance
+//         fbx.rotation.y = Math.PI / 2;  // Rotate 90 degrees about the Y axis, for example
+//     });
+// }
+
+// const fbx_file = './resources/park_aligned.fbx';
+// loadfbx(fbx_file);
+
+const fbx_file = './resources/park_aligned.fbx';
+const donut_fbx = './resources/donut_pink.fbx';
+
+function loadfbx(fbx_dir, callback) {
     const fbxLoader = new FBXLoader();
     fbxLoader.load(fbx_dir, (fbx) => {
-        scene.add(fbx);
-        console.log("FBX Loaded.");
-        // Access the FBX's position here because it's available in this scope.
-        console.log(fbx.position);
-        const box = new THREE.Box3().setFromObject(fbx);
-        console.log(box.min, box.max);
-        const center = box.getCenter(new THREE.Vector3());
-
-        // Center the FBX file
-        fbx.position.sub(center);  // This will center the FBX to the origin of the scene.
-        fbx.position.x -= center.x;
-        fbx.position.z -= center.z;
-
-        // Set ground to be the x and z positions
-        const height = box.max.y - box.min.y;
-        fbx.position.y += height / 2;
-
-        // Scale the FBX file
-        fbx.scale.setScalar(1.3);  // scale down by a factor of 10 for instance
-        fbx.rotation.y = Math.PI / 2;  // Rotate 90 degrees about the Y axis, for example
+        callback(fbx);
     });
 }
 
-const fbx_file = './resources/park_aligned.fbx';
-loadfbx(fbx_file);
+function placeObjectsNearEdges(mainObject, objectToPlacePath) {
+    const box = new THREE.Box3().setFromObject(mainObject);
+
+    const bufferDistance = 1200;
+    const positions = [
+        new THREE.Vector3(box.min.x + bufferDistance, 400, 0),
+        new THREE.Vector3(box.max.x - bufferDistance, 400, 0),
+        new THREE.Vector3(0, 400, box.min.z + bufferDistance),
+        new THREE.Vector3(0, 400, box.max.z - bufferDistance)
+    ];
+
+    loadfbx(objectToPlacePath, (objectToPlace) => {
+        positions.forEach(position => {
+            const clone = objectToPlace.clone();
+            clone.position.copy(position);
+            scene.add(clone);
+
+            console.log("Donut Position: ", clone.position.x, clone.position.y, clone.position.z);
+        });
+    });
+}
+
+function placeObjectAtCenter(mainObject, objectToPlacePath) {
+    const box = new THREE.Box3().setFromObject(mainObject);
+    const center = box.getCenter(new THREE.Vector3());
+
+    loadfbx(objectToPlacePath, (objectToPlace) => {
+        objectToPlace.position.copy(center);
+        scene.add(objectToPlace);
+    });
+}
+
+
+loadfbx(fbx_file, (park) => {
+    scene.add(park);
+    console.log("Park Uploaded");
+
+    const box = new THREE.Box3().setFromObject(park);
+    const center = box.getCenter(new THREE.Vector3());
+
+    // Center the park
+    park.position.sub(center);
+    park.position.x -= center.x;
+    park.position.z -= center.z;
+
+    // Set ground to be the x and z positions
+    const height = box.max.y - box.min.y;
+    park.position.y += height / 2;
+
+    // Scale the park
+    park.scale.setScalar(1.3);
+    park.rotation.y = Math.PI / 2;
+
+    // After adding the park, place the donuts
+    placeObjectsNearEdges(park, donut_fbx);
+    console.log("Donut Uploaded");
+
+});
+
 
 // -----------------------------------------------------------------//
 
@@ -136,7 +207,6 @@ function basicAgent(){
      // Display agent position and camera position
      console.log("Agent Position", agent.position.x, agent.position.y, agent.position.z);
      console.log("Camera Position:", camera.position.x, camera.position.y, camera.position.z);
-     
 }
 
 document.addEventListener('keydown', function(event) {
@@ -207,10 +277,8 @@ function updateCameraPosition() {
     camera.lookAt(agent.position);
 }
 
-
 // Initiate the agent
 basicAgent();
-
 
 // -----------------------------------------------------------------//
 
