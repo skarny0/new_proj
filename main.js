@@ -17,7 +17,7 @@ console.log("Made it here!");
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xe1f6ff)
-scene.fog = new THREE.Fog(0xe1f6ff, 2000, 3500);
+scene.fog = new THREE.Fog(0xe1f6ff, 3000, 6000);
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 10000);
 
 const renderer = new THREE.WebGLRenderer();
@@ -28,7 +28,7 @@ document.body.appendChild( renderer.domElement );
 // Adding an orbital camera (one that can move)
 // const controls = new OrbitControls( camera, renderer.domElement );
 
-camera.position.z = 600;
+camera.position.z = 200;
 
 // display camera coordinates in console
 // console.log("Camera Position:", camera.position.x, camera.position.y, camera.position.z);
@@ -85,8 +85,7 @@ addLight();
 
 // -----------------------------------------------------------------//
 
-const fbx_file = './resources/park_aligned.fbx';
-const donut_fbx = './resources/donut_pink.fbx';
+const fbx_file = './resources/park_3x3.fbx';
 
 function loadfbx(fbx_dir, callback) {
     const fbxLoader = new FBXLoader();
@@ -95,10 +94,12 @@ function loadfbx(fbx_dir, callback) {
     });
 }
 
-function placeObjectsNearEdges(mainObject, objectToPlacePath) {
+function placeObjectsNearEdges(mainObject) {
     const box = new THREE.Box3().setFromObject(mainObject);
+    const cubeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
 
     const bufferDistance = 1200;
+    const cubeSize = 100; 
     const positions = [
         new THREE.Vector3(box.min.x + bufferDistance, 400, 0),
         new THREE.Vector3(box.max.x - bufferDistance, 400, 0),
@@ -106,14 +107,13 @@ function placeObjectsNearEdges(mainObject, objectToPlacePath) {
         new THREE.Vector3(0, 400, box.max.z - bufferDistance)
     ];
 
-    loadfbx(objectToPlacePath, (objectToPlace) => {
-        positions.forEach(position => {
-            const clone = objectToPlace.clone();
-            clone.position.copy(position);
-            scene.add(clone);
+    positions.forEach(position => {
+        const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+        const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        cube.position.copy(position);
+        scene.add(cube);
 
-            console.log("Donut Position: ", clone.position.x, clone.position.y, clone.position.z);
-        });
+        console.log("Cube Position: ", cube.position.x, cube.position.y, cube.position.z);
     });
 }
 
@@ -126,6 +126,34 @@ function placeObjectAtCenter(mainObject, objectToPlacePath) {
         scene.add(objectToPlace);
     });
 }
+
+// function placeFBXInGrid(fbxPath, gridSize = 3) {
+//     const distanceBetweenModels = 8000; // Adjust as needed based on the size of your FBX model
+    
+//     const totalWidth = (gridSize - 1) * distanceBetweenModels; // Total width of the grid
+//     const totalDepth = (gridSize - 1) * distanceBetweenModels; // Total depth of the grid
+
+//     loadfbx(fbxPath, (fbxModel) => {
+//         for (let i = 0; i < gridSize; i++) {
+//             for (let j = 0; j < gridSize; j++) {
+//                 const clone = fbxModel.clone();
+
+//                 // Shift each model by half the width and depth of the grid to ensure the grid is centered
+//                 const xPosition = i * distanceBetweenModels - totalWidth / 2;
+//                 const zPosition = j * distanceBetweenModels - totalDepth / 2;
+
+//                 clone.position.set(xPosition, 0, zPosition);
+//                 scene.add(clone);
+
+//                 // Once the model is added, you can place objects near its edges or do other operations
+//                 placeObjectsNearEdges(clone);
+//             }
+//         }
+//     });
+// }
+
+// // Load the FBX in a 3x3 grid
+// placeFBXInGrid(fbx_file, 3);
 
 loadfbx(fbx_file, (park) => {
     scene.add(park);
@@ -148,8 +176,8 @@ loadfbx(fbx_file, (park) => {
     park.rotation.y = Math.PI / 2;
 
     // After adding the park, place the donuts
-    placeObjectsNearEdges(park, donut_fbx);
-    console.log("Donut Uploaded");
+    placeObjectsNearEdges(park);
+    console.log("Cube-Objects Uploaded");
 
 });
 
@@ -170,7 +198,7 @@ function basicAgent(){
      //updateCameraPosition();
 
      // Set camera's position relative to the agent
-     camera.position.set(0, 1000, -500);
+     camera.position.set(0, 600, -500);
 
      // Display agent position and camera position
      console.log("Agent Position", agent.position.x, agent.position.y, agent.position.z);
@@ -206,7 +234,6 @@ document.addEventListener('keydown', function(event) {
     console.log(`Agent moved to position: ${agent.position.x}, ${agent.position.y}, ${agent.position.z}`);
     // updateCameraPosition();
 });
-
 
 function updateCameraPosition() {
     if(!agent) return;
