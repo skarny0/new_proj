@@ -85,7 +85,7 @@ addLight();
 
 // -----------------------------------------------------------------//
 
-const fbx_file = './resources/park_3x3.fbx';
+const fbx_file = './resources/park_simple.fbx';
 
 function loadfbx(fbx_dir, callback) {
     const fbxLoader = new FBXLoader();
